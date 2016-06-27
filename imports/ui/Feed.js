@@ -29,8 +29,9 @@ const FeedPage = ({ page }) => (
   </List>
 );
 
-const Feed = ({ params, feed, loading, loginToken }) => {
+const Feed = ({ params, feed, loading, loginToken, page, dispatch, ...rest }) => {
   const needsLogin = !loginToken && _.includes(['new', 'unread'], params.type);
+  console.log(dispatch, rest);
 
   return (
     <div>
@@ -47,6 +48,7 @@ const Feed = ({ params, feed, loading, loginToken }) => {
       { feed.loading && <CircularProgress /> }
       { !feed.loading && !needsLogin &&
         feed.result.feed.pages.map((page) => <FeedPage page={page} />) }
+        <button type="button" onClick={() => dispatch({ type: "SET_PAGE", page: page + 1 })}>more...</button>
     </div>
   );
 }
@@ -56,8 +58,8 @@ const FeedWithData = connect({
     return {
       feed: {
         query: `
-          query getFeed($type: FeedType!) {
-            feed(type: $type) {
+          query getFeed($type: FeedType!, $page: Int!) {
+            feed(type: $type, page: $page) {
               pages {
                 topics {
                   id
@@ -69,6 +71,7 @@ const FeedWithData = connect({
         `,
         variables: {
           type: ownProps.params.type.toUpperCase(),
+          page: state.paging.page
         }
       }
     }
@@ -76,6 +79,7 @@ const FeedWithData = connect({
   mapStateToProps(state) {
     return {
       loginToken: state.loginToken,
+      page: state.paging.page
     };
   },
 })(Feed);

@@ -15,16 +15,35 @@ function loginToken(previousState = null, action) {
   return previousState;
 }
 
+function paging(previousState = { page: 1 }, action) {
+  if (action.type === 'SET_PAGE') {
+    return Object.assign({}, previousState, {
+      page: action.page
+    });
+  }
+
+  return previousState;
+}
+
+const currentStateString = localStorage.getItem("reduxState");
+const currentState = currentStateString ? JSON.parse(currentStateString) : {};
+
 export const store = createStore(
   combineReducers({
     apollo: client.reducer(),
     loginToken,
+    paging
   }),
+  currentState,
   compose(
     applyMiddleware(client.middleware()),
     window.devToolsExtension ? window.devToolsExtension() : f => f
   )
 );
+
+store.subscribe(() => {
+  localStorage.setItem("reduxState", JSON.stringify(store.getState()));
+})
 
 networkInterface.use([{
   applyMiddleware(request, next) {
